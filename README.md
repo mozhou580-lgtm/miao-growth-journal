@@ -2,13 +2,13 @@
 
 中文、单人单猫、手机优先的 PWA。记录保存在当前设备 IndexedDB；静态站点没有猫咪数据接口。
 
-当前正式入口：[打开喵成长](https://miao-growth-journal.mozhou580.chatgpt.site/)。该入口为本人可访问，使用创建本站的 ChatGPT 账号登录。
+公开正式入口：[打开喵成长](https://mozhou580-lgtm.github.io/miao-growth-journal/)。无需登录，支持添加到手机主屏幕。
 
 ## 手机使用与迁移
 
 用手机浏览器打开部署网址，先添加到主屏幕，再从桌面打开并建立猫咪档案。iPhone 使用 Safari 的分享菜单；Android 使用浏览器的安装应用或添加到主屏幕选项。
 
-换网址会使用新的浏览器存储。如已在旧版记录，请先打开旧网址，在“设置与备份”中导出完整备份，再在新网址导入。新网址没有原记录时，请通过导入恢复。
+换网址会使用新的浏览器存储。如已在[旧版入口](https://miao-growth-journal.mozhou580.chatgpt.site/)记录，请先在旧版的“设置与备份”中导出完整备份，再在新网址导入。建议从手机桌面打开新版后导入，并核对记录、花费和照片；网址之间没有自动迁移。
 
 网站只有静态页面；自己的记录与照片不会提交到 GitHub。备份也保存在本机，请自行存到文件或云盘。
 
@@ -42,7 +42,7 @@ pnpm preview --host 127.0.0.1 --port 4173
 
 ## 自动发布
 
-GitHub Actions 在每次推送 main 时执行测试和生产构建。启用仓库变量 `DEPLOY_PAGES=true`、并将 Pages 发布源设为 GitHub Actions 后，构建通过才发布到 GitHub Pages。工作流会按照仓库名称设置网址子路径。
+已启用 GitHub Pages 与仓库变量 `DEPLOY_PAGES=true`，发布源为 GitHub Actions。每次推送 main 时执行测试、生产构建和资源校验，通过后自动发布。工作流会按照仓库名称设置网址子路径。
 
 其他静态主机默认部署在 `/`。如需部署在子路径，构建前设置 `APP_BASE_PATH=/子路径/`，然后执行 `pnpm build` 和 `node scripts/check-build.mjs`。静态输出目录为 `dist`，所有安装资源与离线缓存都跟随同一个路径。
 
