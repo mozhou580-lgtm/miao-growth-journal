@@ -1,0 +1,11 @@
+import {useState} from 'react';
+import {Camera,Cat} from 'lucide-react';
+import {dayKey} from '../model';
+import {prepareAsset} from '../storage';
+import {Field} from '../components/ui';
+export default function ProfileForm({profile,onSave,onClose}) {
+  const [avatar,setAvatar]=useState(profile?.avatar||null);const [busy,setBusy]=useState(false);const [uploading,setUploading]=useState(false);const [error,setError]=useState('');
+  async function upload(e){const file=e.target.files[0];e.target.value='';if(!file)return;setUploading(true);try{if(!file.type.startsWith('image/'))throw new Error('头像请选择图片');setAvatar(await prepareAsset(file));}catch(err){setError(err.message);}finally{setUploading(false);}}
+  async function submit(e){e.preventDefault();setBusy(true);setError('');try{const form=new FormData(e.currentTarget);const birthday=String(form.get('birthday'));const name=String(form.get('name')).trim();if(!name)throw new Error('请填写猫咪名字');if(birthday>dayKey())throw new Error('生日不能晚于今天');await onSave({...profile,id:profile?.id||crypto.randomUUID(),name,birthday,estimated:form.has('estimated'),avatar,updatedAt:new Date().toISOString()});onClose();}catch(err){setError(err.message);}finally{setBusy(false);}}
+  return <form className="record-form" onSubmit={submit}><p className="form-hint intro">从名字和生日开始，陪它慢慢长大。</p><label className="avatar-upload">{avatar?<img src={avatar.data} alt="猫咪头像"/>:<Cat size={46} strokeWidth={1.3}/>}<span><Camera size={16}/>{uploading?'读取中…':'添加头像'}</span><input className="visually-hidden" type="file" aria-label="添加猫咪头像" accept="image/jpeg,image/png,image/webp" onChange={upload} disabled={uploading||busy}/></label><Field label="猫咪名字"><input name="name" required maxLength={30} placeholder="它叫什么名字？" defaultValue={profile?.name||''}/></Field><Field label="生日"><input name="birthday" type="date" required max={dayKey()} defaultValue={profile?.birthday||''}/></Field><label className="checkbox-field"><input name="estimated" type="checkbox" defaultChecked={profile?.estimated||false}/>这是估计生日</label><p className="form-hint">新档案从空白开始，示例记录不会加入你的记录。</p>{error&&<p className="form-error" role="alert">{error}</p>}<button type="submit" className="primary-button" disabled={busy||uploading}>{busy?'保存中…':profile?'保存档案':'开始记录'}</button></form>;
+}
