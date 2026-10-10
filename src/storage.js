@@ -9,17 +9,17 @@ export function openDatabase() {
   });
   return dbPromise;
 }
-export async function loadState() {
+export async function loadState(key='state') {
   const db=await openDatabase();
   return new Promise((resolve,reject)=>{
-    const tx=db.transaction('journal','readonly');const request=tx.objectStore('journal').get('state');
+    const tx=db.transaction('journal','readonly');const request=tx.objectStore('journal').get(key);
     request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
   });
 }
-export async function persistState(state) {
+export async function persistState(state,key='state') {
   const db=await openDatabase();
   return new Promise((resolve,reject)=>{
-    const tx=db.transaction('journal','readwrite');tx.objectStore('journal').put(state,'state');
+    const tx=db.transaction('journal','readwrite');tx.objectStore('journal').put(state,key);
     tx.oncomplete=()=>resolve();
     tx.onerror=()=>reject(new Error('保存失败，本机存储可能已满。输入仍保留，请先导出备份'));
     tx.onabort=()=>reject(new Error('记录未保存，请检查存储空间后重试'));
@@ -27,6 +27,16 @@ export async function persistState(state) {
 }
 export function download(content,name,type='application/json') {
   const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+export async function mutateState(key,update){
+  const db=await openDatabase();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction('journal','readwrite');const store=tx.objectStore('journal');const request=store.get(key);let next,problem;
+    request.onsuccess=()=>{try{next=update(request.result);store.put(next,key);}catch(error){problem=error;tx.abort();}};
+    tx.oncomplete=()=>resolve(next);
+    tx.onerror=()=>reject(problem||new Error('保存失败，本机存储可能已满。输入仍保留，请先导出备份'));
+    tx.onabort=()=>reject(problem||new Error('记录未保存，请检查存储空间后重试'));
+  });
 }
 export function readDataURL(file) {return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('文件读取失败'));reader.readAsDataURL(file);});}
 export async function prepareAsset(file) {

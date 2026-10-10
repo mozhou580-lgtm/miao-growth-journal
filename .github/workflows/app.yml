@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_BASE_PATH: /${{ github.event.repository.name }}/
+      VITE_SUPABASE_URL: ${{ github.event_name != 'pull_request' && vars.SUPABASE_URL || '' }}
+      VITE_SUPABASE_ANON_KEY: ${{ github.event_name != 'pull_request' && secrets.SUPABASE_ANON_KEY || '' }}
+      VITE_ENABLE_SMS_LOGIN: ${{ github.event_name != 'pull_request' && vars.ENABLE_SMS_LOGIN || '' }}
+      VITE_ENABLE_EMAIL_LOGIN: ${{ github.event_name != 'pull_request' && vars.ENABLE_EMAIL_LOGIN || '' }}
+      VITE_TURNSTILE_SITE_KEY: ${{ github.event_name != 'pull_request' && vars.TURNSTILE_SITE_KEY || '' }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
@@ -31,16 +36,16 @@ jobs:
       - run: pnpm build
       - run: node scripts/check-build.mjs
       - name: Configure Pages
-        if: github.event_name != 'pull_request' && vars.DEPLOY_PAGES == 'true'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_PAGES == 'true'
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload Pages bundle
-        if: github.event_name != 'pull_request' && vars.DEPLOY_PAGES == 'true'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_PAGES == 'true'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: dist
 
   deploy:
-    if: github.event_name != 'pull_request' && vars.DEPLOY_PAGES == 'true'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_PAGES == 'true'
     needs: build
     runs-on: ubuntu-latest
     permissions:

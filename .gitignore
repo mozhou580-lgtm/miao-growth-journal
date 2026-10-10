@@ -3,6 +3,7 @@ dist/
 .sites-runtime/
 .DS_Store
 .env*
+!.env.example
 *.miao.json
 *.ics
 backups/
